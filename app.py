@@ -1,14 +1,25 @@
 import socket
 import tkinter as tk
 from tkinter import ttk, messagebox
+import threading
+
+# Global flag to control scanning
+scanning = False
 
 def scan_ports(target_ip, start_port, end_port, result_text):
+    global scanning
+    scanning = True
     result_text.delete(1.0, tk.END)
     result_text.insert(tk.END, f"Scanning {target_ip} from port {start_port} to {end_port}...\n\n")
     result_text.update()
     open_ports = []
     
     for port in range(start_port, end_port + 1):
+        if not scanning:  # Check if scanning should stop
+            result_text.insert(tk.END, "\nScanning stopped by user!")
+            result_text.update()
+            return
+            
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(0.5)  # short timeout for speed
         result = s.connect_ex((target_ip, port))
@@ -23,6 +34,16 @@ def scan_ports(target_ip, start_port, end_port, result_text):
     
     result_text.insert(tk.END, "\nScanning completed!")
     result_text.update()
+    scanning = False
+
+def stop_scan():
+    global scanning
+    scanning = False
+
+def start_scan_thread():
+    scan_thread = threading.Thread(target=validate_inputs)
+    scan_thread.daemon = True
+    scan_thread.start()
 
 def validate_inputs():
     try:
@@ -68,8 +89,15 @@ ttk.Label(port_frame, text="End Port:").pack(side=tk.LEFT)
 end_port_entry = ttk.Entry(port_frame, width=10)
 end_port_entry.pack(side=tk.LEFT, padx=5)
 
+# Button frame
+button_frame = ttk.Frame(input_frame)
+button_frame.pack(pady=10)
+
 # Scan button
-ttk.Button(input_frame, text="Scan Ports", command=validate_inputs).pack(pady=10)
+ttk.Button(button_frame, text="Scan Ports", command=start_scan_thread).pack(side=tk.LEFT, padx=5)
+
+# Stop button
+ttk.Button(button_frame, text="Stop Scan", command=stop_scan).pack(side=tk.LEFT, padx=5)
 
 # Results area
 result_text = tk.Text(root, height=20, width=50)

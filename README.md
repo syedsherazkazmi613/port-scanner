@@ -18,7 +18,7 @@ A simple Python-based port scanner that allows you to scan a target IP address f
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/port-scanner.git
+git clone https://github.com/syedsherazkazmi613/port-scanner.git
 cd port-scanner
 ```
 
